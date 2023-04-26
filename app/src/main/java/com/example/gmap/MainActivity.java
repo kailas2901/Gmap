@@ -18,10 +18,13 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,19 +32,22 @@ public class MainActivity extends AppCompatActivity {
     Button Showmap, GetLc, LocList;
     TextView Loc;
     LocationManager locationManager;
-    String latitude, longitude;
+    double latitude, longitude;
+    ArrayList <String> loclist=new ArrayList<>();
+    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        latitude = longitude = "";
+        latitude = longitude = 0.00;
 
         Showmap = findViewById(R.id.b_showmap);
         GetLc = findViewById(R.id.b_GetCL);
         LocList = findViewById(R.id.b_LocationList);
         Loc = findViewById(R.id.LOCATION);
+        listView=findViewById(R.id.loclistv);
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -52,6 +58,37 @@ public class MainActivity extends AppCompatActivity {
             provider += pro;
         }
         Toast.makeText(this, provider, Toast.LENGTH_SHORT).show();
+
+        Showmap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+//                if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION)
+//                        != PackageManager.PERMISSION_GRANTED &&
+//                        ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION)
+//                                != PackageManager.PERMISSION_GRANTED) {
+//
+//                    String[] perm = {
+//                            Manifest.permission.ACCESS_COARSE_LOCATION,
+//                            Manifest.permission.ACCESS_FINE_LOCATION
+//                    };
+//                    ActivityCompat.requestPermissions((Activity) getApplicationContext(), perm,1);
+//
+//                }else {
+//                    Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                    if (location != null){
+//                        latitude = Double.parseDouble(location.getLatitude()+"");
+//                        longitude = Double.parseDouble(location.getLongitude()+"");
+//
+//                    }
+//                }
+                Intent intent = new Intent(getApplicationContext(),MapsActivity.class);
+                intent.putExtra("lati",latitude);
+                intent.putExtra("long",longitude);
+                startActivity(intent);
+
+            }
+        });
 
         GetLc.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
     private void EnableGPS() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Enable GPS").setCancelable(false);
+
+
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -91,6 +130,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void GetLocation() {
 
+
+
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -107,7 +148,16 @@ public class MainActivity extends AppCompatActivity {
                @Override
                public void onLocationChanged(@NonNull Location location) {
                    if(!location.equals(null))
-                       Toast.makeText(MainActivity.this, "Latitude :" + location.getLatitude()+ "\n Longitude:"+location.getLongitude(), Toast.LENGTH_SHORT).show();
+                       latitude = location.getLatitude();
+                        longitude = location.getLongitude();
+
+                       Toast.makeText(MainActivity.this, "Latitude :" + latitude+ "\n Longitude:"+longitude, Toast.LENGTH_SHORT).show();
+
+                   String loc="Latitude :" + latitude+ " Longitude:"+longitude;
+                   loclist.add(loc);
+
+                   ArrayAdapter<String> arrayAdapter=new ArrayAdapter<String>(getApplicationContext(), androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, loclist);
+                   listView.setAdapter(arrayAdapter);
                }
            });
 
@@ -127,8 +177,8 @@ public class MainActivity extends AppCompatActivity {
         }else {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null){
-               latitude = location.getLatitude()+"";
-                longitude = location.getLongitude()+"";
+               latitude = location.getLatitude();
+                longitude = location.getLongitude();
                 Loc.setText("Latitude :" + latitude+ "\n Longitude:"+longitude );
 
             }
